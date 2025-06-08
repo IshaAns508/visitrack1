@@ -1,0 +1,71 @@
+# Linear Regression from Scratch using Matrix Algebra
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+# 1. Load the data
+df = pd.read_csv("your_file.csv")  # <-- Change this to your actual file name
+print(df.head())
+
+# 2. Preprocessing (Drop missing values for simplicity)
+df = df.dropna()
+
+# 3. Exploratory Data Analysis
+print("\nSummary Statistics:")
+print(df.describe())
+
+sns.pairplot(df)
+plt.show()
+
+# 4. Matrix-based Linear Regression
+# Let's assume 'Price' is the target variable and the rest are features
+X = df.drop('Price', axis=1).values
+y = df['Price'].values.reshape(-1, 1)
+
+# Add a bias (intercept) term (column of ones)
+ones = np.ones((X.shape[0], 1))
+X_b = np.hstack([ones, X])  # X with bias
+
+# Compute theta using Normal Equation: θ = (XᵀX)⁻¹ Xᵀy
+theta = np.linalg.inv(X_b.T @ X_b) @ X_b.T @ y
+
+print("\nCoefficients (theta):")
+print(theta)
+
+# 5. Predictions
+y_pred = X_b @ theta
+
+# 6. Evaluation
+mse = np.mean((y - y_pred)**2)
+rss = np.sum((y - y_pred)**2)
+
+print(f"\nMean Squared Error (MSE): {mse:.2f}")
+print(f"Residual Sum of Squares (RSS): {rss:.2f}")
+
+# 7. Plot predicted vs actual
+plt.figure(figsize=(6, 6))
+plt.scatter(y, y_pred, alpha=0.7)
+plt.xlabel("Actual Price")
+plt.ylabel("Predicted Price")
+plt.title("Actual vs Predicted Prices")
+plt.plot([y.min(), y.max()], [y.min(), y.max()], 'r--')  # 45-degree line
+plt.grid()
+plt.show()
+
+# BONUS: Standardize features and re-run regression
+from copy import deepcopy
+
+X_std = deepcopy(X)
+X_std = (X_std - X_std.mean(axis=0)) / X_std.std(axis=0)
+X_b_std = np.hstack([ones, X_std])
+
+theta_std = np.linalg.inv(X_b_std.T @ X_b_std) @ X_b_std.T @ y
+y_pred_std = X_b_std @ theta_std
+
+mse_std = np.mean((y - y_pred_std)**2)
+rss_std = np.sum((y - y_pred_std)**2)
+
+print("\n[Standardized Version]")
+print(f"MSE: {mse_std:.2f}")
+print(f"RSS: {rss_std:.2f}")
